@@ -1,8 +1,9 @@
+#include <memory>
 #include <SFML/Graphics.hpp>
 
 int main()
 {
-    auto window = new sf::RenderWindow{{1920u, 1080u}, "CMake SFML Project"};
+    std::unique_ptr<sf::RenderWindow> window = std::make_unique<sf::RenderWindow>(sf::RenderWindow{{1920u, 1080u}, "2D Game"});
     window->setFramerateLimit(144);
 
     while (window->isOpen())
@@ -14,6 +15,8 @@ int main()
                 window->close();
             }
         }
+
+        // all drawing goes here ...
 
         window->clear();
         window->display();

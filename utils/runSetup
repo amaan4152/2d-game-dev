@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# --- run all utility scripts --- #
+source utils/updateCMake.sh
