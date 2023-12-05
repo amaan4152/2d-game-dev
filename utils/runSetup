@@ -1,4 +1,8 @@
 #!/bin/bash
 
+ROOT=`pwd`
+
 # --- run all utility scripts --- #
 source utils/updateCMake.sh
+
+

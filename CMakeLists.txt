@@ -10,9 +10,24 @@ FetchContent_Declare(SFML
     GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(${CMAKE_PROJECT_NAME} 
+include_directories(include)
+add_executable(${CMAKE_PROJECT_NAME}
+	src/Level.cpp
+	src/World.cpp
+	src/Entity.cpp
     src/main.cpp
 )
+
+# http://qrikko.blogspot.com/2016/05/cmake-and-how-to-copy-resources-during.html
+set (source "${CMAKE_SOURCE_DIR}/assets")
+set (destination "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
+add_custom_command(
+ TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+ COMMAND ${CMAKE_COMMAND} -E create_symlink ${source} ${destination} 
+ DEPENDS ${destination}
+ COMMENT "symbolic link resources folder from ${source} => ${destination}"
+)
+
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE sfml-graphics)
 target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE cxx_std_17)
 
