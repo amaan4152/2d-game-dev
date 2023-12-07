@@ -3,10 +3,12 @@
 
 #include <memory>
 #include <vector>
-#include <Entity.h>
+#include "Entity.h"
 
-using entity_sptr = std::shared_ptr<Entity>;
-using entity_collection = std::vector<entity_sptr>;
+template <typename T>
+using uptr = std::unique_ptr<T>;
+template <typename T>
+using collection = std::vector<uptr<T>>;
 
 class World
 {
@@ -17,14 +19,14 @@ public:
 
     World(float gravity);
 
-    void operator>>(entity_sptr &entity);
+    void operator>>(RigidBody::Entity* entity);
 
     void update(float dt);
 
     void init();
 
 private:
-    entity_collection EntityCollection;
+    collection<RigidBody::Entity> EntityCollection;
 
     float gravity;
 };

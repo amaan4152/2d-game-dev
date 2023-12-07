@@ -12,6 +12,8 @@ FetchContent_MakeAvailable(SFML)
 
 include_directories(include)
 add_executable(${CMAKE_PROJECT_NAME}
+	src/StaticRB.cpp
+	src/DynamicRB.cpp
 	src/Level.cpp
 	src/World.cpp
 	src/Entity.cpp

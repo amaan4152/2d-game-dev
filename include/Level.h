@@ -7,7 +7,7 @@
 
 using sprite_uptr = std::unique_ptr<sf::Sprite>;
 
-enum EDITOR_STATE
+enum editor_state
 {
     NONE,
     SELECTED,
@@ -16,6 +16,18 @@ enum EDITOR_STATE
     ZOOM_OUT,
     DUPLICATE
 };
+
+
+enum mouse_state
+{
+    LMB_CLICKED,
+    LMB_RELEASED,
+    RMB_CLICKED,
+    RMB_RELEASED,
+    VSCROLL_UP,
+    VSCROLL_DOWN
+};
+
 
 class Level
 {
@@ -28,12 +40,13 @@ public:
 
     void draw(sf::RenderTarget &window);
 
-    void editor(bool dev, EDITOR_STATE &state, std::string levelStateFile, sf::RenderWindow &window, sf::Event &event, float dt);
+    void editor(bool dev, std::string levelStateFile, editor_state &estate, mouse_state &mstate, sf::RenderWindow &window, sf::Event &event, float dt);
 
 private:
     int objDragID;
     bool mouseHeld;
     std::string id;
+
     std::vector<sprite_uptr> objects;
     std::vector<sf::Vector2i> posConfig;
     std::vector<sf::Vector2i> sizeConfig;

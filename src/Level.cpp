@@ -34,84 +34,75 @@ void Level::draw(sf::RenderTarget &window)
         window.draw(*obj);
 }
 
-void Level::editor(bool dev, EDITOR_STATE &state, std::string levelStateFile, sf::RenderWindow &window, sf::Event &event, float dt)
+void Level::editor(bool dev, std::string levelStateFile, editor_state &estate, mouse_state &mstate, sf::RenderWindow &window, sf::Event &event, float dt)
 {
-    this->t += dt;
     if (dev)
     {
+        int i = 0;
+        if(estate != DUPLICATE)
+        {    
+            for (sprite_uptr &obj : this->objects)
+            {
+                if (mstate == LMB_CLICKED && this->isClickable(obj, window))
+                {
+                    this->objDragID = i;
+                    estate = SELECTED;
+                    break; // can only drag one object
+                }
+                else if(!this->isClickable(obj, window) && mstate == LMB_CLICKED)
+                    estate = UNSELECTED; 
+                ++i;
+            }
+        }
         if (this->objDragID != -1) // if an object is draggable, lock onto object
         {
-            float tElapsed = this->tHold - this->t;
+            sf::Sprite objDup;
             sprite_uptr &obj = this->objects[this->objDragID]; // get draggable object
-            sf::Vector2i objSize = this->sizeConfig[this->objDragID];
-            sprite_uptr objDup = nullptr;
             sf::Vector2f scale;
 
-            // update mouse data
-            sf::Vector2f mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-            sf::Vector2f delMousePos = mPos - this->mousePos;
-            this->mouseDelta += delMousePos;
-            sf::Vector2i dir = {(delMousePos.x > 0) - (delMousePos.x < 0), (delMousePos.y > 0) - (delMousePos.y < 0)};
-            switch (state)
+            if (mstate == VSCROLL_UP)
+                estate = ZOOM_IN;
+            if (mstate == VSCROLL_DOWN)
+                estate = ZOOM_OUT;
+            switch (estate)
             {
             case SELECTED:
-                this->tHold = this->t;
-                // if (std::fabs(this->mouseDelta.x) >= this->gridConfig.x || std::fabs(this->mouseDelta.y) >= this->gridConfig.y)
-                if (event.type == sf::Event::KeyPressed)
-                {
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-                    {
-                        // std::cout << "g.x = " << this->gridConfig.x << " | m.x = " << this->mouseDelta.x << std::endl;
-                        // this->mouseDelta = {0.f, 0.f};
-                        // this->mousePos = mPos;
+                if(event.type == sf::Event::KeyPressed)
+                {   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
                         obj->move(this->gridConfig.x * 2, 0.f);
-                        // obj->setPosition(mPos);
-                    }
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
                         obj->move(-1 * this->gridConfig.x * 2, 0.f);
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
                         obj->move(0.f, -1 * this->gridConfig.y * 2);
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-                        obj->move(0.f, this->gridConfig.y * 2);
+                        obj->move(0.f, this->gridConfig.y * 2) ;
                 }
                 break;
             case DUPLICATE:
-                std::cout << "\t DUP" << std::endl;
-                objDup = std::make_unique<sf::Sprite>(*obj);
-                this->objects.push_back(std::move(objDup));
+                std::cout << "[NOTICE]: Duplicating" << std::endl;
+                objDup = *obj;
+                this->objects.push_back(std::make_unique<sf::Sprite>(objDup));
                 this->sizeConfig.push_back(this->sizeConfig[this->objDragID]);
+                this->objDragID = this->objects.size() - 1; 
+                estate = SELECTED;
                 break;
             case UNSELECTED:
-                std::cout << "UNSELECT" << std::endl;
                 this->objDragID = -1;
                 break;
             case ZOOM_IN:
                 scale = {1 - SCALE_FACTOR, 1 - SCALE_FACTOR};
                 obj->scale(sf::Vector2f(scale));
                 this->sizeConfig[this->objDragID] = sf::Vector2i(obj->getGlobalBounds().width, obj->getGlobalBounds().height);
+                estate = SELECTED;
                 break;
             case ZOOM_OUT:
                 scale = {1 + SCALE_FACTOR, 1 + SCALE_FACTOR};
                 obj->scale(sf::Vector2f(scale));
                 this->sizeConfig[this->objDragID] = sf::Vector2i(obj->getGlobalBounds().width, obj->getGlobalBounds().height);
+                estate = SELECTED;
                 break;
             case NONE:
                 break;
-            }
-        }
-        else // if no draggable object, unlock permission to select an object
-        {
-            int i = 0;
-            for (sprite_uptr &obj : this->objects)
-            {
-                if (this->isClickable(obj, window))
-                {
-                    this->tHold = this->t;
-                    this->objDragID = i;
-                    this->mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-                    break; // can only drag one object
-                }
-                ++i;
             }
         }
     }

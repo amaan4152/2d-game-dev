@@ -6,78 +6,67 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 
-enum orientation
+enum bodyType
 {
-    RESET,
-    RIGHT,
-    LEFT,
-    UP,
-    DOWN
+    STATIC,
+    DYNAMIC
 };
 
-enum state
+namespace RigidBody
 {
-    IDLE = 0,
-    WALK = 5,
-    JUMP = 9
-};
+    class Entity
+    {
+    public:
+        bool grounded;
 
-class Entity
-{
-public:
-    float MAX_Y_VELOCITY = 200.f;
+    public:
+        // --- constructors --- //
+        Entity() = default;
+        Entity(bodyType type, std::string name, sf::Texture &texture, sf::Vector2i udims, sf::Vector2f &scale);
 
-    int jumpCharge = 3;
-    bool jumped;
-    bool grounded;
-    bool faceForward;
+        // --- body dependent functions --- //
+        virtual void update() = 0;
+        virtual void animate();
+        virtual void updateAnimation();
+        virtual void move();
+        virtual void jump();
+        virtual void flip();
 
-    // --- constructors --- //
-    Entity() = default;
-    Entity(std::string name, sf::Texture &texture, sf::Vector2i udims, sf::Vector2f &scale);
+        // --- draw --- //
+        void draw(sf::RenderTarget &target);
 
-    // --- actions --- //
-    void draw(sf::RenderTarget &target);
-    void animate(state action, sf::Vector2i window, sf::Vector2i padding, float dt);
-    void move(orientation dir, float dt);
-    void jump();
-    void flip();
+        // --- setters --- //
+        void setState(bool apply, const sf::Vector2f &pos, const sf::Vector2f &vel, const sf::Vector2f &accel);
+        void setPos(const sf::Vector2f pos);
+        void setVel(const sf::Vector2f vel);
+        void setAccel(const sf::Vector2f accel);
 
-    // --- setters --- //
-    void setState(sf::Vector2f pos, sf::Vector2f vel, sf::Vector2f accel, bool initial = true);
-    void setVel(sf::Vector2f vel);
-    void setAccel(sf::Vector2f accel);
+        // --- getters --- //
+        std::string getName();
+        std::unique_ptr<sf::Sprite> getSprite();
+        sf::Vector2f getDims();
+        void getState(sf::Vector2f &pos, sf::Vector2f &vel, sf::Vector2f &accel);
+        bodyType getType();
 
-    // --- getters --- //
-    std::string getName();
-    std::unique_ptr<sf::Sprite> getSprite();
-    void getState(sf::Vector2f &pos, sf::Vector2f &vel, sf::Vector2f &accel);
-    sf::Vector2f getDims();
+    protected:
+        // entity name
+        std::string id;
+        bodyType type;
 
-protected:
-    // entity name
-    std::string id;
+        // entity sprite
+        sf::Sprite self;
 
-    // entity sprite
-    sf::Sprite self;
+        // entity shape
+        sf::Vector2u dims;
+        sf::Vector2i udims;
 
-    // entity states
-    sf::Vector2f pos;
-    sf::Vector2f vel;
-    sf::Vector2f accel;
+        // state variables
+        sf::Vector2f pos;
+        sf::Vector2f vel;
+        sf::Vector2f accel;
 
-    // entity shape
-    sf::Vector2u dims;
-    sf::Vector2i udims;
-
-    // entity animation state
-    unsigned int spriteID;
-    sf::Vector2i spriteBox_ul;
-
-    // time
-    float t;
-
-    inline void updateAnimation(int start, int end, sf::Vector2i &window, sf::Vector2i &padding);
-};
-
+        // time
+        float t;
+    };
+}
 #endif

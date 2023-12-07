@@ -11,7 +11,7 @@
 
 const float GRAVITY = -250.f;
 
-void updatePlayerState(entity_sptr &Player, state &playerState, orientation &playerDir);
+void updatePlayerState(entity_uptr &Player, state &playerState, orientation &playerDir);
 
 int main()
 {
@@ -48,18 +48,15 @@ int main()
     // entities
     sf::Vector2i spriteWindow = {32, 32};
     sf::Vector2f scale(2.f, 2.f);
-    entity_sptr Player = std::make_shared<Entity>(Entity{"Player", playerTexture, spriteWindow, scale});
+    entity_uptr Player = std::make_unique<Entity>(Entity{"Player", playerTexture, spriteWindow, scale});
     Environment >> Player;
     Environment.init();
 
-    bool playerLaunched = false;
-    bool jumpKeyPress = false;
-    bool dupObject = false;
-    bool clicked = false;
-
+    bool enableDev = true;
+    mouse_state mouseState;
     state playerState = IDLE;
     sf::Clock clock;
-    EDITOR_STATE editorState = NONE;
+    editor_state editorState = NONE;
     while (window.isOpen())
     {
         sf::Event event = sf::Event{};
@@ -74,27 +71,25 @@ int main()
 
         float dt = clock.restart().asSeconds();
         orientation playerDir = RESET;
-        // EDITOR_STATE editorState = NONE;
+        // editor_state editorState = NONE;
 
         // update environment
         Environment.update(dt);
-        if (editorState != SELECTED && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-            editorState = SELECTED;
-        else if (editorState == SELECTED && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-        {
-            editorState = UNSELECTED;
-            dupObject = false;
-        }
 
-        if (editorState == SELECTED && event.type == sf::Event::MouseWheelScrolled)
-            editorState = (event.mouseWheelScroll.delta > 0) ? ZOOM_IN : ZOOM_OUT;
-        else if (editorState == SELECTED && sf::Keyboard::isKeyPressed(sf::Keyboard::C) && !dupObject)
-        {
-            editorState = DUPLICATE;
-            dupObject = true;
-        }
-
-        Stage.editor(true, editorState, "", window, event, dt);
+        // if (enableDev)
+        // {
+        //     mouseState = LMB_RELEASED;
+        //     if(event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+        //         mouseState = LMB_CLICKED;
+        //     if(editorState == SELECTED)
+        //     {    
+        //         if (event.type == sf::Event::MouseWheelScrolled)
+        //             mouseState = (event.mouseWheelScroll.delta > 0) ? VSCROLL_UP : VSCROLL_DOWN;
+        //         else if (event.type == sf::Event::KeyPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::C))
+        //             editorState = DUPLICATE;
+        //     }
+        // }
+        // Stage.editor(enableDev, "", editorState, mouseState, window, event, dt);
 
         // updates entities
         updatePlayerState(Player, playerState, playerDir);
@@ -102,13 +97,13 @@ int main()
         Player->move(playerDir, dt);
 
         // draw
-        Stage.draw(window);
+        // Stage.draw(window);
         Player->draw(window);
         window.display();
     }
 }
 
-void updatePlayerState(entity_sptr &Player, state &playerState, orientation &playerDir)
+void updatePlayerState(entity_uptr &Player, state &playerState, orientation &playerDir)
 {
     if (Player->grounded && Player->jumped && Player->jumpCharge == -2)
     {
