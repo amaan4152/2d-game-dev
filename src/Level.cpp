@@ -112,14 +112,31 @@ void Level::editor(editor_state &estate, mouse_state &mstate, sf::RenderWindow &
         {
         case SELECTED:
             if(event.type == sf::Event::KeyPressed)
-            {   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-                    obj->self.move(this->gridConfig.x * 2, 0.f);
+            {   
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+                {
+                    obj->self.move(this->gridConfig.x, 0.f);
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                        obj->self.move(this->objects[this->objDragID]->self.getGlobalBounds().width, 0.f);
+                }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-                    obj->self.move(-1 * this->gridConfig.x * 2, 0.f);
+                {
+                    obj->self.move(-1 * this->gridConfig.x, 0.f);
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                        obj->self.move(-1 * this->objects[this->objDragID]->self.getGlobalBounds().width, 0.f);
+                }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-                    obj->self.move(0.f, -1 * this->gridConfig.y * 2);
+                {
+                    obj->self.move(0.f, -1 * this->gridConfig.y);
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                        obj->self.move(0.f, -1 * this->objects[this->objDragID]->self.getGlobalBounds().height);
+                }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-                    obj->self.move(0.f, this->gridConfig.y * 2) ;
+                {
+                    obj->self.move(0.f, this->gridConfig.y);
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                        obj->self.move(0.f, this->objects[this->objDragID]->self.getGlobalBounds().height);
+                }
                 this->duplicateKeyPressed = false;
                 this->deleteKeyPressed = false;
             }

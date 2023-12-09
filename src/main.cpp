@@ -38,12 +38,12 @@ int main()
     World Environment(GRAVITY);
 
     // level
-    bool enableDev = true;
+    bool enableDev = false;
     std::vector<sf::Vector2i> posConfig = {
         {0, 0}, {32, 0}, {64, 0}, {0, 16}, {10, 16}};
     std::vector<sf::Vector2i> sizeConfig = {
         {32, 16}, {24, 16}, {16, 16}, {10, 16}, {7, 16}};
-    sf::Vector2f gridConfig = window.mapPixelToCoords({2, 2});
+    sf::Vector2f gridConfig = {8, 8};
     Level Stage("lvl_00", levelTexture, gridConfig, posConfig, sizeConfig);
     std::string levelSaveFile = (enableDev) ? "" : "level00.txt";
     Stage.init(levelSaveFile);
