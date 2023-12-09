@@ -6,6 +6,29 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 
+template <typename T>
+using sptr = std::shared_ptr<T>;
+template <typename T>
+using wptr = std::weak_ptr<T>;
+template <typename T>
+using collection = std::vector<sptr<T>>;
+
+enum orientation
+{
+    RESET,
+    RIGHT,
+    LEFT,
+    UP,
+    DOWN
+};
+
+enum state
+{
+    IDLE = 0,
+    WALK = 5,
+    JUMP = 9
+};
+
 enum bodyType
 {
     STATIC,
@@ -23,14 +46,9 @@ namespace RigidBody
         // --- constructors --- //
         Entity() = default;
         Entity(bodyType type, std::string name, sf::Texture &texture, sf::Vector2i udims, sf::Vector2f &scale);
+        virtual ~Entity();
 
-        // --- body dependent functions --- //
-        virtual void update() = 0;
-        virtual void animate();
-        virtual void updateAnimation();
-        virtual void move();
-        virtual void jump();
-        virtual void flip();
+        // --- body dependent virtual functions --- //
 
         // --- draw --- //
         void draw(sf::RenderTarget &target);

@@ -3,12 +3,8 @@
 
 #include <memory>
 #include <vector>
+#include "DynamicRB.h"
 #include "Entity.h"
-
-template <typename T>
-using uptr = std::unique_ptr<T>;
-template <typename T>
-using collection = std::vector<uptr<T>>;
 
 class World
 {
@@ -19,16 +15,29 @@ public:
 
     World(float gravity);
 
-    void operator>>(RigidBody::Entity* entity);
+    template <class T>
+    void operator>>(sptr<T> &entity)
+    {
+        bodyType type = entity->getType();
+        if(type == DYNAMIC)
+            this->EntityCollection.push_back(entity);
+        else if(type == STATIC)
+            this->EntityCollection.push_back(entity);
+    }
 
     void update(float dt);
+
+    void draw(sf::RenderTarget &window);
 
     void init();
 
 private:
     collection<RigidBody::Entity> EntityCollection;
-
+    state playerState;
+    orientation playerOrient;
     float gravity;
+
+    void playerController(sptr<RigidBody::Dynamic> &Player, float dt);
 };
 
 #endif

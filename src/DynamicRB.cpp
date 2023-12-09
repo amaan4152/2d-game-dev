@@ -4,12 +4,13 @@
 RigidBody::Dynamic::Dynamic(std::string name, sf::Texture &texture, sf::Vector2i spriteWindow, sf::Vector2i padding, sf::Vector2i &udims, sf::Vector2f &scale) : Entity{DYNAMIC, name, texture, udims, scale}, spriteWindow{spriteWindow}, padding{padding}
 {}
 
-void RigidBody::Dynamic::update(state action, orientation dir, float dt)
+void RigidBody::Dynamic::update(state &action, orientation &dir, float dt)
 {
     if(action == JUMP) 
         this->jump();
     this->move(dir, dt);
     this->animate(action, dt);
+    dir = RESET;
 }
 
 void RigidBody::Dynamic::animate(state action, float dt)
@@ -67,14 +68,10 @@ inline void RigidBody::Dynamic::updateAnimation(int start, int end)
     ++this->spriteID;                                     // update sprite ID
 }
 
-void RigidBody::Dynamic::move(orientation dir, float dt)
+void RigidBody::Dynamic::move(orientation dir, float dt) 
 {
     sf::Vector2f offset(0.f, 0.f);
-
-    // flip depending on horizontal dir
-    // if ((!this->faceForward && dir == RIGHT) || (this->faceForward && dir == LEFT))
-    //     this->flip();
-
+    
     // move based on direction
     if (dir == RIGHT && (this->faceForward = true))
         offset.x = this->vel.x * dt;

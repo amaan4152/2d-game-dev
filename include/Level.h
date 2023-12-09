@@ -1,22 +1,22 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
+#include <string>
 #include <vector>
 #include <Entity.h>
 #include <SFML/Graphics/RenderWindow.hpp>
 
-using sprite_uptr = std::unique_ptr<sf::Sprite>;
 
 enum editor_state
 {
     NONE,
     SELECTED,
     UNSELECTED,
+    DELETE,
     ZOOM_IN,
     ZOOM_OUT,
     DUPLICATE
 };
-
 
 enum mouse_state
 {
@@ -28,6 +28,15 @@ enum mouse_state
     VSCROLL_DOWN
 };
 
+struct levelObject
+{
+    unsigned int ogID;
+    unsigned int duplicateID;
+    sf::Sprite self;
+};
+
+template <typename T>
+using uptr = std::unique_ptr<T>;
 
 class Level
 {
@@ -36,18 +45,21 @@ public:
 
     Level(std::string name, sf::Texture &texture, sf::Vector2f &gridConfig, std::vector<sf::Vector2i> &posConfig, std::vector<sf::Vector2i> &sizeConfig);
 
-    void init(sf::RenderTarget &window);
+    void init(std::string levelFile);
 
     void draw(sf::RenderTarget &window);
 
-    void editor(bool dev, std::string levelStateFile, editor_state &estate, mouse_state &mstate, sf::RenderWindow &window, sf::Event &event, float dt);
+    void editor(editor_state &estate, mouse_state &mstate, sf::RenderWindow &window, sf::Event &event, float dt);
+
+    void serialize(std::string filename);
 
 private:
     int objDragID;
-    bool mouseHeld;
+    bool duplicateKeyPressed;
+    bool deleteKeyPressed;
     std::string id;
 
-    std::vector<sprite_uptr> objects;
+    std::vector<uptr<levelObject>> objects;
     std::vector<sf::Vector2i> posConfig;
     std::vector<sf::Vector2i> sizeConfig;
 
@@ -60,7 +72,7 @@ private:
 
     void getLevelObjects(sf::Texture &texture, std::vector<sf::Vector2i> &posConfig, std::vector<sf::Vector2i> &sizeConfig);
 
-    bool isClickable(sprite_uptr &obj, sf::RenderWindow &window);
+    bool isClickable(uptr<levelObject> &obj, sf::RenderWindow &window);
 };
 
 #endif

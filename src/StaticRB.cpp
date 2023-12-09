@@ -13,3 +13,4 @@ void RigidBody::Static::update(sf::Vector2f pos, sf::Vector2f vel, sf::Vector2f 
     this->pos += offset;
     this->self.move(offset);
 }
+

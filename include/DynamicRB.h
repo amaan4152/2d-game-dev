@@ -3,21 +3,7 @@
 
 #include "Entity.h"
 
-enum orientation
-{
-    RESET,
-    RIGHT,
-    LEFT,
-    UP,
-    DOWN
-};
 
-enum state
-{
-    IDLE = 0,
-    WALK = 5,
-    JUMP = 9
-};
 
 namespace RigidBody
 {
@@ -34,12 +20,11 @@ namespace RigidBody
         Dynamic() = default;
         Dynamic(std::string name, sf::Texture &texture, sf::Vector2i spriteWindow, sf::Vector2i padding, sf::Vector2i &udims, sf::Vector2f &scale);
         
-        void update(state action, orientation dir, float dt);
+        void update(state &action, orientation &dir, float dt);
 
-    protected:
         // --- actions --- //
         void animate(state action, float dt);
-        inline void updateAnimation(int start, int end);
+        void updateAnimation(int start, int end);
         void move(orientation dir, float dt);
         void jump();
         void flip();
@@ -51,4 +36,5 @@ namespace RigidBody
         sf::Vector2i padding;
     };
 }
+
 #endif

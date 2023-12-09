@@ -2,16 +2,17 @@
 #include <memory>
 #include <SFML/Graphics.hpp>
 
+
+#include <World.h>
+#include <DynamicRB.h>
 #include <Entity.h>
 #include <Level.h>
-#include <World.h>
+#include <StaticRB.h>
 
 #define WINDOW_WIDTH 1900
 #define WINDOW_HEIGHT 900
 
 const float GRAVITY = -250.f;
-
-void updatePlayerState(entity_uptr &Player, state &playerState, orientation &playerDir);
 
 int main()
 {
@@ -37,22 +38,24 @@ int main()
     World Environment(GRAVITY);
 
     // level
+    bool enableDev = true;
     std::vector<sf::Vector2i> posConfig = {
         {0, 0}, {32, 0}, {64, 0}, {0, 16}, {10, 16}};
     std::vector<sf::Vector2i> sizeConfig = {
         {32, 16}, {24, 16}, {16, 16}, {10, 16}, {7, 16}};
-    sf::Vector2f gridConfig = window.mapPixelToCoords({8, 8});
+    sf::Vector2f gridConfig = window.mapPixelToCoords({2, 2});
     Level Stage("lvl_00", levelTexture, gridConfig, posConfig, sizeConfig);
-    Stage.init(window);
+    std::string levelSaveFile = (enableDev) ? "" : "level00.txt";
+    Stage.init(levelSaveFile);
 
     // entities
     sf::Vector2i spriteWindow = {32, 32};
     sf::Vector2f scale(2.f, 2.f);
-    entity_uptr Player = std::make_unique<Entity>(Entity{"Player", playerTexture, spriteWindow, scale});
+    sptr<RigidBody::Dynamic> Player = std::make_shared<RigidBody::Dynamic>(RigidBody::Dynamic("Player", playerTexture, spriteWindow, {0, 0}, spriteWindow, scale));
     Environment >> Player;
     Environment.init();
 
-    bool enableDev = true;
+    
     mouse_state mouseState;
     state playerState = IDLE;
     sf::Clock clock;
@@ -64,6 +67,9 @@ int main()
         {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || event.type == sf::Event::Closed)
             {
+                window.resetGLStates();
+                window.clear();
+                window.setActive(false);
                 window.close();
             }
         }
@@ -76,58 +82,28 @@ int main()
         // update environment
         Environment.update(dt);
 
-        // if (enableDev)
-        // {
-        //     mouseState = LMB_RELEASED;
-        //     if(event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-        //         mouseState = LMB_CLICKED;
-        //     if(editorState == SELECTED)
-        //     {    
-        //         if (event.type == sf::Event::MouseWheelScrolled)
-        //             mouseState = (event.mouseWheelScroll.delta > 0) ? VSCROLL_UP : VSCROLL_DOWN;
-        //         else if (event.type == sf::Event::KeyPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::C))
-        //             editorState = DUPLICATE;
-        //     }
-        // }
-        // Stage.editor(enableDev, "", editorState, mouseState, window, event, dt);
-
-        // updates entities
-        updatePlayerState(Player, playerState, playerDir);
-        Player->animate(playerState, spriteWindow, {0, 0}, dt);
-        Player->move(playerDir, dt);
+        if (enableDev)
+        {
+            mouseState = LMB_RELEASED;
+            if(event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+                mouseState = LMB_CLICKED;
+            if(editorState == SELECTED)
+            {    
+                if (event.type == sf::Event::MouseWheelScrolled)
+                    mouseState = (event.mouseWheelScroll.delta > 0) ? VSCROLL_UP : VSCROLL_DOWN;
+            }
+            Stage.editor(editorState, mouseState, window, event, dt);
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            {
+                std::cout << "Saved!" << std::endl;
+                Stage.serialize("level00.txt");
+            }
+        }
+        
 
         // draw
-        // Stage.draw(window);
-        Player->draw(window);
+        Stage.draw(window);
+        Environment.draw(window);
         window.display();
     }
-}
-
-void updatePlayerState(entity_uptr &Player, state &playerState, orientation &playerDir)
-{
-    if (Player->grounded && Player->jumped && Player->jumpCharge == -2)
-    {
-        Player->jumped = false;
-        Player->jumpCharge = 3;
-        playerState = IDLE;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || playerState == JUMP)
-    {
-        playerState = JUMP;
-        Player->jump();
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-    {
-        playerDir = LEFT;
-        if (Player->grounded && playerState != JUMP)
-            playerState = WALK;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-    {
-        playerDir = RIGHT;
-        if (Player->grounded && playerState != JUMP)
-            playerState = WALK;
-    }
-    else if (Player->grounded && playerState != JUMP)
-        playerState = IDLE;
 }

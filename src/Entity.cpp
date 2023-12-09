@@ -17,6 +17,11 @@ RigidBody::Entity::Entity(bodyType type, std::string name, sf::Texture &texture,
     this->self.setScale(scale);
 }
 
+RigidBody::Entity::~Entity()
+{
+
+}
+
 void RigidBody::Entity::draw(sf::RenderTarget &target)
 {
     target.draw(this->self);
