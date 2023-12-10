@@ -10,7 +10,7 @@ namespace RigidBody
     class Dynamic : public Entity
     {
     public:
-        float MAX_Y_VELOCITY = 200.f;
+        float MAX_Y_VELOCITY = 300.f;
         int jumpCharge = 3;
 
         bool jumped;
@@ -20,6 +20,7 @@ namespace RigidBody
         Dynamic() = default;
         Dynamic(std::string name, sf::Texture &texture, sf::Vector2i spriteWindow, sf::Vector2i padding, sf::Vector2i &udims, sf::Vector2f &scale);
         
+        // --- update body --- //
         void update(state &action, orientation &dir, float dt);
 
         // --- actions --- //

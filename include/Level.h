@@ -5,6 +5,7 @@
 #include <vector>
 #include <Entity.h>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 
 
 enum editor_state
@@ -53,20 +54,27 @@ public:
 
     void serialize(std::string filename);
 
+    unsigned int getLevelSize();
+
+    levelObject getObject(unsigned int idx);
+
 private:
     int objDragID;
     bool duplicateKeyPressed;
     bool deleteKeyPressed;
+    bool enableBoxSelect;
     std::string id;
 
+    std::vector<unsigned int> selectedIdx;
     std::vector<uptr<levelObject>> objects;
     std::vector<sf::Vector2i> posConfig;
     std::vector<sf::Vector2i> sizeConfig;
 
+    sf::RectangleShape boxSelect;
+    sf::Vector2f boxSelectOrigin;
     sf::Vector2f gridConfig;
-    sf::Vector2f mousePos;
-    sf::Vector2f mouseDelta;
 
+    mouse_state currMState;
     float t;
     float tHold;
 

@@ -16,36 +16,44 @@ const float GRAVITY = -250.f;
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "2D Game");
+    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Bob's Adventure: Basic 2D Platformer");
     window.setFramerateLimit(144);
     window.setKeyRepeatEnabled(true);
 
     // need to figure out how to batch load :/
     sf::Texture playerTexture;
     sf::Texture levelTexture;
+    sf::Texture bgTexture;
     if (!playerTexture.loadFromFile("assets/bob-sheet.png"))
     {
-        std::cerr << "[ERROR]: Texture doesn't exist" << std::endl;
+        std::cerr << "[ERROR]: Player texture doesn't exist" << std::endl;
         exit(1);
     }
     if (!levelTexture.loadFromFile("assets/levelSheet.png"))
     {
-        std::cerr << "[ERROR]: Texture doesn't exist" << std::endl;
+        std::cerr << "[ERROR]: Level texture doesn't exist" << std::endl;
         exit(1);
     }
+    if (!bgTexture.loadFromFile("assets/bg00.png"))
+    {
+        std::cerr << "[ERROR]: BG texture doesn't exist" << std::endl;
+        exit(1);
+    }
+    sf::Sprite background(bgTexture);
 
     // world
     World Environment(GRAVITY);
 
     // level
-    bool enableDev = false;
+    bool enableDev = false; // for level development
+    sptr<std::vector<uptr<levelObject>>> level;
     std::vector<sf::Vector2i> posConfig = {
         {0, 0}, {32, 0}, {64, 0}, {0, 16}, {10, 16}};
     std::vector<sf::Vector2i> sizeConfig = {
         {32, 16}, {24, 16}, {16, 16}, {10, 16}, {7, 16}};
     sf::Vector2f gridConfig = {8, 8};
     Level Stage("lvl_00", levelTexture, gridConfig, posConfig, sizeConfig);
-    std::string levelSaveFile = (enableDev) ? "" : "level00.txt";
+    std::string levelSaveFile = "level00.txt";
     Stage.init(levelSaveFile);
 
     // entities
@@ -55,7 +63,6 @@ int main()
     Environment >> Player;
     Environment.init();
 
-    
     mouse_state mouseState;
     state playerState = IDLE;
     sf::Clock clock;
@@ -77,10 +84,8 @@ int main()
 
         float dt = clock.restart().asSeconds();
         orientation playerDir = RESET;
-        // editor_state editorState = NONE;
 
         // update environment
-        Environment.update(dt);
 
         if (enableDev)
         {
@@ -99,9 +104,11 @@ int main()
                 Stage.serialize("level00.txt");
             }
         }
-        
+        else
+            Environment.update(Stage, dt);
 
         // draw
+        window.draw(background);
         Stage.draw(window);
         Environment.draw(window);
         window.display();

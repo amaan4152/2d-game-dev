@@ -5,6 +5,14 @@
 #include <vector>
 #include "DynamicRB.h"
 #include "Entity.h"
+#include "Level.h"
+
+enum collision_type
+{
+    NO_COLLISION,
+    BOTTOM,
+    ABOVE,
+};
 
 class World
 {
@@ -25,7 +33,9 @@ public:
             this->EntityCollection.push_back(entity);
     }
 
-    void update(float dt);
+    collision_type detectCollision(sptr<RigidBody::Dynamic> &actor, levelObject &levelEntity);
+
+    void update(Level &Stage, float dt);
 
     void draw(sf::RenderTarget &window);
 

@@ -48,8 +48,6 @@ namespace RigidBody
         Entity(bodyType type, std::string name, sf::Texture &texture, sf::Vector2i udims, sf::Vector2f &scale);
         virtual ~Entity();
 
-        // --- body dependent virtual functions --- //
-
         // --- draw --- //
         void draw(sf::RenderTarget &target);
 
@@ -61,7 +59,7 @@ namespace RigidBody
 
         // --- getters --- //
         std::string getName();
-        std::unique_ptr<sf::Sprite> getSprite();
+        sptr<sf::Sprite> getSprite();
         sf::Vector2f getDims();
         void getState(sf::Vector2f &pos, sf::Vector2f &vel, sf::Vector2f &accel);
         bodyType getType();

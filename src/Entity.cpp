@@ -56,9 +56,9 @@ std::string RigidBody::Entity::getName()
     return this->id;
 }
 
-std::unique_ptr<sf::Sprite> RigidBody::Entity::getSprite()
+sptr<sf::Sprite> RigidBody::Entity::getSprite()
 {
-    return std::make_unique<sf::Sprite>(this->self);
+    return std::make_shared<sf::Sprite>(this->self);
 }
 
 sf::Vector2f RigidBody::Entity::getDims()

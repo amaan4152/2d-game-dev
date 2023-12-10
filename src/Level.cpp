@@ -1,5 +1,5 @@
 #include <cmath>
-#include <fstream> 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <Level.h>
@@ -7,10 +7,11 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 
 #define SCALE_FACTOR 0.25
 
-Level::Level(std::string name, sf::Texture &texture, sf::Vector2f &gridConfig, std::vector<sf::Vector2i> &posConfig, std::vector<sf::Vector2i> &sizeConfig) : id{name}, objDragID{-1}, gridConfig{gridConfig}, posConfig{posConfig}, sizeConfig{sizeConfig}
+Level::Level(std::string name, sf::Texture &texture, sf::Vector2f &gridConfig, std::vector<sf::Vector2i> &posConfig, std::vector<sf::Vector2i> &sizeConfig) : id{name}, objDragID{-1}, gridConfig{gridConfig}, posConfig{posConfig}, sizeConfig{sizeConfig}, enableBoxSelect{false}
 {
     this->getLevelObjects(texture, posConfig, sizeConfig);
 }
@@ -18,18 +19,18 @@ Level::Level(std::string name, sf::Texture &texture, sf::Vector2f &gridConfig, s
 void Level::init(std::string levelFile)
 {
     sf::Vector2f pos{0.f, 0.f};
-    if(levelFile != "")
+    if (levelFile != "")
     {
-        unsigned int i = 0; 
+        unsigned int i = 0;
         std::string line;
         unsigned int ogID, dupID;
         sf::Vector2f pos, scale;
         std::ifstream infile(levelFile);
-        while(std::getline(infile, line))
+        while (std::getline(infile, line))
         {
             std::stringstream ss(line);
-            ss >> ogID >> dupID >> pos.x >> pos.y >> scale.x >> scale.y; 
-            if(i < this->objects.size())
+            ss >> ogID >> dupID >> pos.x >> pos.y >> scale.x >> scale.y;
+            if (i < this->objects.size())
             {
                 this->objects[i]->ogID = ogID;
                 this->objects[i]->duplicateID = dupID;
@@ -59,7 +60,7 @@ void Level::init(std::string levelFile)
 void Level::serialize(std::string filename)
 {
     std::ofstream outfile(filename);
-    for(uptr<levelObject> &obj : this->objects)
+    for (uptr<levelObject> &obj : this->objects)
     {
         sf::Vector2f pos = obj->self.getPosition();
         sf::Vector2f scale = obj->self.getScale();
@@ -77,11 +78,28 @@ void Level::draw(sf::RenderTarget &window)
     }
     for (uptr<levelObject> &obj : this->objects)
         window.draw((*obj).self);
+    if (this->enableBoxSelect)
+        window.draw(this->boxSelect);
 }
 
 void Level::editor(editor_state &estate, mouse_state &mstate, sf::RenderWindow &window, sf::Event &event, float dt)
 {
-    int i = 0;
+    // if (mstate == LMB_CLICKED && this->currMState == LMB_CLICKED)
+    // {
+    //     this->enableBoxSelect = true;
+    //     sf::Vector2f currMPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+    //     sf::Vector2f rectSize = currMPos - this->boxSelectOrigin;
+    //     rectSize = {std::fabs(rectSize.x), std::fabs(rectSize.y)};
+    //     this->boxSelect = sf::RectangleShape(rectSize);
+    //     this->boxSelect.setPosition(this->boxSelectOrigin);
+    //     this->boxSelect.setFillColor(sf::Color::Transparent);
+    //     this->boxSelect.setOutlineColor(sf::Color::Yellow);
+    //     this->boxSelect.setOutlineThickness(-2.f);
+    // }
+    // else if (mstate == LMB_CLICKED)
+    //     this->boxSelectOrigin = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+
+    unsigned int i = 0;
     for (uptr<levelObject> &obj : this->objects)
     {
         if (mstate == LMB_CLICKED && this->isClickable(obj, window))
@@ -90,8 +108,8 @@ void Level::editor(editor_state &estate, mouse_state &mstate, sf::RenderWindow &
             estate = SELECTED;
             break; // can only drag one object
         }
-        else if(!this->isClickable(obj, window) && mstate == LMB_CLICKED)
-            estate = UNSELECTED; 
+        else if (!this->isClickable(obj, window) && mstate == LMB_CLICKED)
+            estate = UNSELECTED;
         ++i;
     }
     if (this->objDragID != -1) // if an object is draggable, lock onto object
@@ -111,8 +129,8 @@ void Level::editor(editor_state &estate, mouse_state &mstate, sf::RenderWindow &
         switch (estate)
         {
         case SELECTED:
-            if(event.type == sf::Event::KeyPressed)
-            {   
+            if (event.type == sf::Event::KeyPressed)
+            {
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
                 {
                     obj->self.move(this->gridConfig.x, 0.f);
@@ -147,20 +165,20 @@ void Level::editor(editor_state &estate, mouse_state &mstate, sf::RenderWindow &
             objDup.duplicateID = this->objects.size() - 1;
             this->objects.push_back(std::make_unique<levelObject>(objDup));
             this->sizeConfig.push_back(this->sizeConfig[this->objDragID]);
-            this->objDragID = this->objects.size() - 1; 
+            this->objDragID = this->objects.size() - 1;
             estate = SELECTED;
             break;
         case UNSELECTED:
             this->objDragID = -1;
             break;
         case DELETE:
-            std::cout << "trig del - " << this->objects[this->objDragID]->ogID << " | " << this->objects[this->objDragID]->duplicateID << " !" << std::endl;
             this->deleteKeyPressed = true;
-            if(this->objects[this->objDragID]->ogID != this->objects[this->objDragID]->duplicateID) // check if not a fundamental block, but a duplicate
-            {    
-                std::cout << "deteting..." << std::endl;
+            if (this->objects[this->objDragID]->ogID != this->objects[this->objDragID]->duplicateID) // check if not a fundamental block, but a duplicate
+            {
+                this->objects[this->objDragID].reset();
                 this->objects.erase(this->objects.begin() + this->objDragID);
             }
+            estate = UNSELECTED;
             break;
         case ZOOM_IN:
             scale = {1 - SCALE_FACTOR, 1 - SCALE_FACTOR};
@@ -178,6 +196,17 @@ void Level::editor(editor_state &estate, mouse_state &mstate, sf::RenderWindow &
             break;
         }
     }
+    this->currMState = mstate;
+}
+
+unsigned int Level::getLevelSize()
+{
+    return this->objects.size();
+}
+
+levelObject Level::getObject(unsigned int idx)
+{
+    return *(this->objects[idx]);
 }
 
 void Level::getLevelObjects(sf::Texture &texture, std::vector<sf::Vector2i> &posConfig, std::vector<sf::Vector2i> &sizeConfig)
